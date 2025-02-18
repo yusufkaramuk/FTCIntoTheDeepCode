@@ -8,16 +8,20 @@ import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
+
+
 
 @Autonomous(name = "FirstAuto")
 public class FirstAuto extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        MecanumDrive drive = new MecanumDrive(hardwareMap, new Pose2d(0, -60, Math.toRadians(90)));
+        MecanumDrive drive = new MecanumDrive(hardwareMap, new Pose2d(12, -60, Math.toRadians(90)));
 
         Servo KiskacServo = hardwareMap.get(Servo.class, "KiskacServo");
         DcMotorEx leftElevator = hardwareMap.get(DcMotorEx.class, "leftElevator");
@@ -36,71 +40,84 @@ public class FirstAuto extends LinearOpMode {
         rightElevator.setTargetPosition(0);
         leftElevator.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
         rightElevator.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
-        int AsansorMax= 1500;
-        int AsansorAski= 1055;
-        int AsansorMin= 0;
 
-        KiskacServo.setPosition(0.0); // Servo kapalı konum
+        int AsansorAskiMax = 1900;
+        int AsansorAskiMin = 1000;
+        int AsansorMin = 10;
 
 
         waitForStart();
 
-        if (isStopRequested()) return;  // Eğer durdurulmuşsa çık
+        if (isStopRequested()) return;
 
         Actions.runBlocking(
-                drive.actionBuilder(new Pose2d(0, -60, Math.toRadians(90)))
-                        // **Servo Kodu** (!Servo Kapalı İken 0 Değerine Sahip!)
-                        // .stopAndAdd(new ServoAction(KiskacServo, 0))
-
-                        // Asansörü maksimum yüksekliğe çıkar
-                        .stopAndAdd(new ElevatorAction(leftElevator, rightElevator, AsansorMax, 0.5))
-
-                        // Hedef konuma hareket et
-                        .splineTo(new Vector2d(0, -34), Math.toRadians(90.00))
-
+                drive.actionBuilder(new Pose2d(12, -60, Math.toRadians(90)))
+                        .strafeTo(new Vector2d(35, -36))
+                        .strafeTo(new Vector2d(35, -12))
+                        .strafeTo(new Vector2d(42, -12))
+                        .strafeTo(new Vector2d(42, -51.63))
+                        .splineToLinearHeading(new Pose2d(38.00, -55.5, Math.toRadians(270.00)), Math.toRadians(270.00))
+                        .strafeTo(new Vector2d(38, -58))
+                        //kıskac
+                        .stopAndAdd(new ServoAction(KiskacServo, 0.0))
+                        .waitSeconds(1)
+                        .stopAndAdd(new ElevatorAction(leftElevator, rightElevator, 1, AsansorAskiMax, this))
+                        .strafeTo(new Vector2d(35.00, -51.05))
+                        .splineToLinearHeading(new Pose2d(11.95, -41.56, Math.toRadians(125.00)), Math.toRadians(125.00))
+                        .splineToLinearHeading(new Pose2d(4.27, -35, Math.toRadians(90.00)), Math.toRadians(270.00))
+                        .strafeTo(new Vector2d(4.27, -28))
                         // Asansörü askı yüksekliğine indir
-                        .stopAndAdd(new ElevatorAction(leftElevator, rightElevator, AsansorAski, 0.3))
-
+                        .stopAndAdd(new ElevatorAction(leftElevator, rightElevator, 1, AsansorAskiMin, this))
                         // Servo aç
-                        .stopAndAdd(new ServoAction(KiskacServo, 1.0)) // 1.0: Açık konum
+                        .stopAndAdd(new ServoAction(KiskacServo, 1.0))
+                        .strafeTo(new Vector2d(4.27, -36))
+
+
+
+                        .splineToLinearHeading(new Pose2d(35.00, -36.00, Math.toRadians(90.00)), Math.toRadians(90)) // Geri geri giderek X:35 Y:-36 noktasına ulaşır
+                        .stopAndAdd(new ElevatorAction(leftElevator, rightElevator, 0.7, AsansorMin, this))
+
+                        .splineToLinearHeading(new Pose2d(38.00, -55.5, Math.toRadians(270.00)), Math.toRadians(270.00))
+                        .stopAndAdd(new ServoAction(KiskacServo, 0.0))
+                        .waitSeconds(1)
+                        .stopAndAdd(new ElevatorAction(leftElevator, rightElevator, 1, AsansorAskiMax, this))
+
+
+
+
+
+                        //Human-Askı Yolu
+                        .strafeTo(new Vector2d(35.00, -51.05))
+                        .splineToLinearHeading(new Pose2d(11.95, -41.56, Math.toRadians(125.00)), Math.toRadians(125.00))
+                        .splineToLinearHeading(new Pose2d(0, -35, Math.toRadians(90.00)), Math.toRadians(270.00))
+                        .strafeTo(new Vector2d(0, -30))
+                        // Asansörü askı yüksekliğine indir
+                        .stopAndAdd(new ElevatorAction(leftElevator, rightElevator, 1, AsansorAskiMin, this))
+                        // Servo aç
+                        .stopAndAdd(new ServoAction(KiskacServo, 1.0))
+                        .waitSeconds(0.5)
 
                         .strafeTo(new Vector2d(0, -36))
 
-                        .stopAndAdd(new ElevatorAction(leftElevator, rightElevator, AsansorMin, 0.5))
 
-                        .strafeTo(new Vector2d(0, -37.31))
-
-
-
-                                // **Hareket Planı**
-                        /*.splineTo(new Vector2d(34.95, -34.42), Math.toRadians(90.00))
-                        .splineTo(new Vector2d(35, -10.19), Math.toRadians(90.00))
-                        .strafeTo(new Vector2d(47.17, -10.19))
-                        .strafeTo(new Vector2d(47.17, -51.63))
-                        .strafeTo(new Vector2d(47.17, -10.19))
-                        .strafeTo(new Vector2d(57.17, -10.19))
-                        .strafeTo(new Vector2d(57.17, -51.63))
-                        .strafeTo(new Vector2d(57.17, -10.19))
-                        .strafeTo(new Vector2d(61, -10.19))
-                        .strafeTo(new Vector2d(61, -51.63))
-                        .strafeTo(new Vector2d(61, -33.29))
-                        .strafeTo(new Vector2d(0, -33.29))*/
 
                         .build());
     }
 }
 
-// **Asansör Motoru İçin Aksiyon Sınıfı**
+// **ElevatorAction Sınıfı**
 class ElevatorAction implements Action {
     private final DcMotorEx leftElevator, rightElevator;
-    private final int targetPosition;
     private final double power;
+    private final int targetPosition;
+    private final LinearOpMode opMode;
 
-    public ElevatorAction(DcMotorEx left, DcMotorEx right, int position, double power) {
-        this.leftElevator = left;
-        this.rightElevator = right;
-        this.targetPosition = position;
+    public ElevatorAction(DcMotorEx leftElevator, DcMotorEx rightElevator, double power, int targetPosition, LinearOpMode opMode) {
+        this.leftElevator = leftElevator;
+        this.rightElevator = rightElevator;
         this.power = power;
+        this.targetPosition = targetPosition;
+        this.opMode = opMode;
     }
 
     @Override
@@ -114,21 +131,23 @@ class ElevatorAction implements Action {
         leftElevator.setPower(power);
         rightElevator.setPower(power);
 
-        // **Asansör Hareketi Tamamlanana Kadar Bekle**
-        while (leftElevator.isBusy() || rightElevator.isBusy()) {
+        while ((leftElevator.isBusy() || rightElevator.isBusy()) && opMode.opModeIsActive()) {
             telemetryPacket.put("Left Elevator Position", leftElevator.getCurrentPosition());
             telemetryPacket.put("Right Elevator Position", rightElevator.getCurrentPosition());
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
         }
 
-        // **Motorları Durdur**
         leftElevator.setPower(0);
         rightElevator.setPower(0);
-
         return false;
     }
 }
 
-// **Servo İçin Aksiyon Sınıfı**
+// **ServoAction Sınıfı**
 class ServoAction implements Action {
     private final Servo servo;
     private final double position;
